@@ -6,6 +6,9 @@ import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
 import connectDB from './config/mongo.config.js';
 
+import authRoutes from './routes/authRoutes.js';
+import resumeRoutes from './routes/resumeRoutes.js';
+
 dotenv.config();
 connectDB();
 
@@ -22,6 +25,13 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 app.use(morgan("dev"));
+
+app.use('/api/users', authRoutes);
+app.use('/api/resumes', resumeRoutes);
+
+app.get('/', (req, res) => {
+    res.json({ message: 'Resume Builder API is running!' });
+});
 
 app.use((req, res) => {
     res.status(404).json({ message: "Route not found" });

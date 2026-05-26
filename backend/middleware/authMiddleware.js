@@ -72,7 +72,6 @@ export const optionalAuth = catchAsync(async (req, res, next) => {
         req.user = currentUser;
       }
     } catch (error) {
-      // Token invalid but we don't throw error
     }
   }
   next();
