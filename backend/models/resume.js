@@ -1,21 +1,18 @@
 import mongoose from "mongoose";
 
 const resumeSchema = new mongoose.Schema({
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User", 
+  _id: {
+    type: String,
     required: true
   },
-  resumeTitle: { 
-    type: String, 
-    required: true, 
+  resumeTitle: {
+    type: String,
+    default: 'My Resume'
   },
-
-  templateName: { 
-    type: String, 
-    default: "Modern" 
+  templateName: {
+    type: String,
+    default: "Modern"
   },
- 
   personalInfo: {
     phone: String,
     city: String,
@@ -24,38 +21,28 @@ const resumeSchema = new mongoose.Schema({
     githubUrl: String,
     summary: String
   },
-
   skills: [String],
-
   experience: [{
     company: String,
     position: String,
-    startDate: Date,
-    endDate: Date,
+    startDate: String,
+    endDate: String,
     isCurrentJob: Boolean,
     description: String
   }],
-
   education: [{
     institution: String,
     degree: String,
-    startDate: Date,
-    endDate: Date
+    startDate: String,
+    endDate: String
   }],
-   projects: [
-      {
-        title: {
-          type: String,
-          required: true,
-        },
-        link: {
-          type: String,
-        },
-        description: {
-          type: String,
-        },
-      },
-    ],
+  projects: [
+    {
+      title: String,
+      link: String,
+      description: String,
+    },
+  ],
 }, { timestamps: true });
 
 export default mongoose.model("Resume", resumeSchema);

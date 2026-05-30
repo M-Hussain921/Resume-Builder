@@ -1,20 +1,8 @@
-import mongoose from 'mongoose';
 import Resume from '../models/Resume.js';
 import AppError from '../utils/AppError.js';
 import catchAsync from '../utils/catchAsync.js';
 
 export const createResume = catchAsync(async (req, res, next) => {
-  const { userId } = req.body;
-  
-  if (!userId) {
-    return next(new AppError('UserId is required', 400));
-  }
-
-  const existingResume = await Resume.findOne({ userId });
-  if (existingResume) {
-    return next(new AppError('Resume already exists for this user! Use update instead.', 400));
-  }
-
   const newResume = await Resume.create(req.body);
 
   res.status(201).json({
@@ -24,32 +12,9 @@ export const createResume = catchAsync(async (req, res, next) => {
   });
 });
 
-export const getResumeByUserId = catchAsync(async (req, res, next) => {
-  const { userId } = req.params;
-  
-  if (!userId) {
-    return next(new AppError('UserId is required', 400));
-  }
-
-  const resume = await Resume.findOne({ userId });
-  
-  if (!resume) {
-    return next(new AppError('No resume found for this user. Create one first!', 404));
-  }
-
-  res.json({
-    success: true,
-    data: resume
-  });
-});
-
 export const getResumeById = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return next(new AppError('Invalid resume ID', 400));
-  }
-
   const resume = await Resume.findById(id);
   
   if (!resume) {
@@ -62,49 +27,9 @@ export const getResumeById = catchAsync(async (req, res, next) => {
   });
 });
 
-export const getAllResumes = catchAsync(async (req, res, next) => {
-  const resumes = await Resume.find().sort({ createdAt: -1 });
-  
-  res.json({
-    success: true,
-    count: resumes.length,
-    data: resumes
-  });
-});
-
-export const updateResume = catchAsync(async (req, res, next) => {
-  const { userId } = req.params;
-  
-  if (!userId) {
-    return next(new AppError('UserId is required', 400));
-  }
-
-  let resume = await Resume.findOne({ userId });
-  
-  if (!resume) {
-    return next(new AppError('Resume not found for this user. Create one first!', 404));
-  }
-
-  resume = await Resume.findByIdAndUpdate(
-    resume._id,
-    req.body,
-    { new: true, runValidators: true }
-  );
-
-  res.json({
-    success: true,
-    message: 'Resume updated successfully!',
-    data: resume
-  });
-});
-
 export const updateResumeById = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return next(new AppError('Invalid resume ID', 400));
-  }
-
   const resume = await Resume.findByIdAndUpdate(
     id,
     req.body,
@@ -122,63 +47,30 @@ export const updateResumeById = catchAsync(async (req, res, next) => {
   });
 });
 
-export const updatePersonalInfo = catchAsync(async (req, res, next) => {
-  const { userId } = req.params;
-  const { phone, city, state, linkedInUrl, githubUrl, summary } = req.body;
+export const deleteResumeById = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
   
-  const resume = await Resume.findOne({ userId });
+  const resume = await Resume.findByIdAndDelete(id);
+  
   if (!resume) {
     return next(new AppError('Resume not found', 404));
   }
 
-  if (phone) resume.personalInfo.phone = phone;
-  if (city) resume.personalInfo.city = city;
-  if (state) resume.personalInfo.state = state;
-  if (linkedInUrl) resume.personalInfo.linkedInUrl = linkedInUrl;
-  if (githubUrl) resume.personalInfo.githubUrl = githubUrl;
-  if (summary) resume.personalInfo.summary = summary;
-  
-  await resume.save();
-
   res.json({
     success: true,
-    message: 'Personal info updated!',
-    data: resume.personalInfo
-  });
-});
-
-export const updateTemplateName = catchAsync(async (req, res, next) => {
-  const { userId } = req.params;
-  const { templateName } = req.body;
-  
-  if (!templateName) {
-    return next(new AppError('Template name is required', 400));
-  }
-
-  const resume = await Resume.findOne({ userId });
-  if (!resume) {
-    return next(new AppError('Resume not found', 404));
-  }
-
-  resume.templateName = templateName;
-  await resume.save();
-
-  res.json({
-    success: true,
-    message: 'Template updated!',
-    templateName: resume.templateName
+    message: 'Resume deleted successfully!'
   });
 });
 
 export const addSkill = catchAsync(async (req, res, next) => {
-  const { userId } = req.params;
+  const { id } = req.params;
   const { skill } = req.body;
   
   if (!skill) {
     return next(new AppError('Skill is required', 400));
   }
 
-  const resume = await Resume.findOne({ userId });
+  const resume = await Resume.findById(id);
   if (!resume) {
     return next(new AppError('Resume not found', 404));
   }
@@ -196,10 +88,10 @@ export const addSkill = catchAsync(async (req, res, next) => {
 });
 
 export const removeSkill = catchAsync(async (req, res, next) => {
-  const { userId } = req.params;
+  const { id } = req.params;
   const { skill } = req.body;
   
-  const resume = await Resume.findOne({ userId });
+  const resume = await Resume.findById(id);
   if (!resume) {
     return next(new AppError('Resume not found', 404));
   }
@@ -215,14 +107,14 @@ export const removeSkill = catchAsync(async (req, res, next) => {
 });
 
 export const addExperience = catchAsync(async (req, res, next) => {
-  const { userId } = req.params;
+  const { id } = req.params;
   const { company, position, startDate, endDate, isCurrentJob, description } = req.body;
   
   if (!company || !position || !startDate) {
     return next(new AppError('Company, position and start date are required', 400));
   }
 
-  const resume = await Resume.findOne({ userId });
+  const resume = await Resume.findById(id);
   if (!resume) {
     return next(new AppError('Resume not found', 404));
   }
@@ -238,10 +130,10 @@ export const addExperience = catchAsync(async (req, res, next) => {
 });
 
 export const updateExperience = catchAsync(async (req, res, next) => {
-  const { userId, expIndex } = req.params;
+  const { id, expIndex } = req.params;
   const { company, position, startDate, endDate, isCurrentJob, description } = req.body;
   
-  const resume = await Resume.findOne({ userId });
+  const resume = await Resume.findById(id);
   if (!resume) {
     return next(new AppError('Resume not found', 404));
   }
@@ -268,9 +160,9 @@ export const updateExperience = catchAsync(async (req, res, next) => {
 });
 
 export const removeExperience = catchAsync(async (req, res, next) => {
-  const { userId, expIndex } = req.params;
+  const { id, expIndex } = req.params;
   
-  const resume = await Resume.findOne({ userId });
+  const resume = await Resume.findById(id);
   if (!resume) {
     return next(new AppError('Resume not found', 404));
   }
@@ -291,14 +183,14 @@ export const removeExperience = catchAsync(async (req, res, next) => {
 });
 
 export const addEducation = catchAsync(async (req, res, next) => {
-  const { userId } = req.params;
+  const { id } = req.params;
   const { institution, degree, startDate, endDate } = req.body;
   
   if (!institution || !degree) {
     return next(new AppError('Institution and degree are required', 400));
   }
 
-  const resume = await Resume.findOne({ userId });
+  const resume = await Resume.findById(id);
   if (!resume) {
     return next(new AppError('Resume not found', 404));
   }
@@ -314,10 +206,10 @@ export const addEducation = catchAsync(async (req, res, next) => {
 });
 
 export const updateEducation = catchAsync(async (req, res, next) => {
-  const { userId, eduIndex } = req.params;
+  const { id, eduIndex } = req.params;
   const { institution, degree, startDate, endDate } = req.body;
   
-  const resume = await Resume.findOne({ userId });
+  const resume = await Resume.findById(id);
   if (!resume) {
     return next(new AppError('Resume not found', 404));
   }
@@ -342,9 +234,9 @@ export const updateEducation = catchAsync(async (req, res, next) => {
 });
 
 export const removeEducation = catchAsync(async (req, res, next) => {
-  const { userId, eduIndex } = req.params;
+  const { id, eduIndex } = req.params;
   
-  const resume = await Resume.findOne({ userId });
+  const resume = await Resume.findById(id);
   if (!resume) {
     return next(new AppError('Resume not found', 404));
   }
@@ -365,14 +257,14 @@ export const removeEducation = catchAsync(async (req, res, next) => {
 });
 
 export const addProject = catchAsync(async (req, res, next) => {
-  const { userId } = req.params;
+  const { id } = req.params;
   const { title, link, description } = req.body;
   
   if (!title) {
     return next(new AppError('Project title is required', 400));
   }
 
-  const resume = await Resume.findOne({ userId });
+  const resume = await Resume.findById(id);
   if (!resume) {
     return next(new AppError('Resume not found', 404));
   }
@@ -388,10 +280,10 @@ export const addProject = catchAsync(async (req, res, next) => {
 });
 
 export const updateProject = catchAsync(async (req, res, next) => {
-  const { userId, projIndex } = req.params;
+  const { id, projIndex } = req.params;
   const { title, link, description } = req.body;
   
-  const resume = await Resume.findOne({ userId });
+  const resume = await Resume.findById(id);
   if (!resume) {
     return next(new AppError('Resume not found', 404));
   }
@@ -415,9 +307,9 @@ export const updateProject = catchAsync(async (req, res, next) => {
 });
 
 export const removeProject = catchAsync(async (req, res, next) => {
-  const { userId, projIndex } = req.params;
+  const { id, projIndex } = req.params;
   
-  const resume = await Resume.findOne({ userId });
+  const resume = await Resume.findById(id);
   if (!resume) {
     return next(new AppError('Resume not found', 404));
   }
@@ -434,40 +326,5 @@ export const removeProject = catchAsync(async (req, res, next) => {
     success: true,
     message: 'Project removed!',
     projects: resume.projects
-  });
-});
-
-export const deleteResume = catchAsync(async (req, res, next) => {
-  const { userId } = req.params;
-  
-  const resume = await Resume.findOne({ userId });
-  if (!resume) {
-    return next(new AppError('Resume not found', 404));
-  }
-
-  await Resume.deleteOne({ _id: resume._id });
-
-  res.json({
-    success: true,
-    message: 'Resume deleted successfully!'
-  });
-});
-
-export const deleteResumeById = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
-  
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return next(new AppError('Invalid resume ID', 400));
-  }
-
-  const resume = await Resume.findByIdAndDelete(id);
-  
-  if (!resume) {
-    return next(new AppError('Resume not found', 404));
-  }
-
-  res.json({
-    success: true,
-    message: 'Resume deleted successfully!'
   });
 });
