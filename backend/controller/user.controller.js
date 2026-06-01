@@ -1,4 +1,3 @@
-import mongoose from 'mongoose';
 import User from '../models/User.js';
 import AppError from '../utils/AppError.js';
 import catchAsync from '../utils/catchAsync.js';
@@ -7,7 +6,7 @@ import jwt from 'jsonwebtoken';
 
 export const createUser = catchAsync(async (req, res, next) => {
   const { email } = req.body;
-  
+
   const existingUser = await User.findOne({ email });
   if (existingUser) {
     return next(new AppError('User already exists with this email!', 400));
@@ -28,39 +27,6 @@ export const createUser = catchAsync(async (req, res, next) => {
     success: true,
     message: 'User created successfully!',
     data: newUser
-  });
-});
-
-export const loginUser = catchAsync(async (req, res, next) => {
-  const { email, password } = req.body;
-  
-  if (!email || !password) {
-    return next(new AppError('Email and password are required', 400));
-  }
-
-  const user = await User.findOne({ email });
-  if (!user) {
-    return next(new AppError('Invalid email or password', 401));
-  }
-
-  const isPasswordCorrect = await bcrypt.compare(password, user.password);
-  if (!isPasswordCorrect) {
-    return next(new AppError('Invalid email or password', 401));
-  }
-
-  const token = jwt.sign(
-    { id: user._id, email: user.email },
-    process.env.JWT_SECRET,
-    { expiresIn: '7d' }
-  );
-
-  user.password = undefined;
-
-  res.json({
-    success: true,
-    message: 'Login successful!',
-    token,
-    data: user
   });
 });
 

@@ -1,24 +1,20 @@
-// Database duplicate key error handle
 const handleDuplicateKeyError = (err) => {
   const field = Object.keys(err.keyPattern)[0];
   const message = `${field} already exists. Please use another value.`;
   return new AppError(message, 400);
 };
 
-// Validation error handle
 const handleValidationError = (err) => {
   const errors = Object.values(err.errors).map(el => el.message);
   const message = `Invalid input data: ${errors.join('. ')}`;
   return new AppError(message, 400);
 };
 
-// Cast error handle (invalid ID)
 const handleCastError = (err) => {
   const message = `Invalid ${err.path}: ${err.value}`;
   return new AppError(message, 400);
 };
 
-// Send error response in development
 const sendErrorDev = (err, res) => {
   res.status(err.statusCode).json({
     status: err.status,
@@ -28,17 +24,15 @@ const sendErrorDev = (err, res) => {
   });
 };
 
-// Send error response in production
 const sendErrorProd = (err, res) => {
-  // Operational error - trusted error
   if (err.isOperational) {
     res.status(err.statusCode).json({
       status: err.status,
       message: err.message
     });
   } else {
-    // Programming error - don't leak details
-    console.error('ERROR 💥', err);
+
+    console.error('ERROR:', err);
     res.status(500).json({
       status: 'error',
       message: 'Something went wrong!'
@@ -46,7 +40,6 @@ const sendErrorProd = (err, res) => {
   }
 };
 
-// Global error handler middleware
 const globalErrorHandler = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
@@ -65,4 +58,4 @@ const globalErrorHandler = (err, req, res, next) => {
   }
 };
 
-module.exports = globalErrorHandler;
+export default globalErrorHandler;

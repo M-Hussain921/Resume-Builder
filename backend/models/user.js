@@ -27,13 +27,7 @@ const userSchema = new mongoose.Schema(
     location: {
       city: String,
       state: String,
-    },
-    linkedInUrl: {
-      type: String,
-    },
-    githubUrl: {
-      type: String,
-    },
+    }
   },
   { timestamps: true }
 );
